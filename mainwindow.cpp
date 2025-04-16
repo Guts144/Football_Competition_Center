@@ -128,7 +128,6 @@ QWidget* MainWindow::createMatchCard(const QString &team1, const QString &team2,
     return card;
 }
 
-
 QWidget* MainWindow::createMatchArea()
 {
     QWidget *mainArea = new QWidget;
