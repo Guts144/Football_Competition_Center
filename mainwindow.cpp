@@ -89,10 +89,15 @@ QWidget* MainWindow::createSidebar()
     sidebar->setStyleSheet("background-color: #00695c; color: white;");
 
     QVBoxLayout *layout = new QVBoxLayout(sidebar);
-    layout->setSpacing(20);
+    layout->setSpacing(50);
     layout->setContentsMargins(20, 40, 20, 20);
 
-    QLabel *logo = new QLabel("⚽\nSmart Football\nCompititon Center");
+    QLabel *logo = new QLabel;
+    QPixmap pixmap(":/logo.png"); // Use ":/logo.png" if using resources
+    logo->setPixmap(pixmap);
+    logo->setFixedSize(150, 90); // Set size as needed
+    logo->setScaledContents(true); // Allow scaling to fit the QLabel
+
     logo->setAlignment(Qt::AlignCenter);
     logo->setStyleSheet("font-weight: bold; font-size: 18px;");
 
