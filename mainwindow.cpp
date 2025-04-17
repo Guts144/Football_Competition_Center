@@ -145,7 +145,7 @@ QWidget* MainWindow::createMatchCard(const QString &team1, const QString &team2,
     team1Layout->addWidget(team1Icon, 0, Qt::AlignCenter);
     team1Layout->addWidget(team1Label, 0, Qt::AlignCenter);
 
-    // Match Info (time & stadium)
+    // Match Info
     QLabel *matchTimeLabel = new QLabel("<b style='font-size: 22px;'>" + time + "</b>");
     QLabel *stadiumLabel = new QLabel(stadium);
     stadiumLabel->setStyleSheet("color: #777;");
@@ -162,15 +162,27 @@ QWidget* MainWindow::createMatchCard(const QString &team1, const QString &team2,
     team2Layout->addWidget(team2Icon, 0, Qt::AlignCenter);
     team2Layout->addWidget(team2Label, 0, Qt::AlignCenter);
 
-    // Details button
+    // Buttons
     QPushButton *detailsBtn = new QPushButton("Détails");
-    detailsBtn->setStyleSheet("padding: 10px 20px; background-color: #004d40; color: white; font-weight: bold; border-radius: 10px;");
+    QPushButton *deleteBtn = new QPushButton("Supprimer");
+
+    detailsBtn->setStyleSheet("padding: 8px 16px; background-color: #004d40; color: white; font-weight: bold; border-radius: 8px;");
+    deleteBtn->setStyleSheet("padding: 8px 16px; background-color: #c62828; color: white; font-weight: bold; border-radius: 8px;");
+
     connect(detailsBtn, &QPushButton::clicked, [=]() {
         showMatchDetails(team1, team2);
     });
 
+    connect(deleteBtn, &QPushButton::clicked, [=]() {
+        if (matchListLayoutPtr) {
+            matchListLayoutPtr->removeWidget(card);
+            card->deleteLater();  // Schedule deletion
+        }
+    });
+
     QVBoxLayout *buttonLayout = new QVBoxLayout;
     buttonLayout->addWidget(detailsBtn);
+    buttonLayout->addWidget(deleteBtn);
     buttonLayout->addStretch();
 
     // Add all to main layout
@@ -181,6 +193,7 @@ QWidget* MainWindow::createMatchCard(const QString &team1, const QString &team2,
 
     return card;
 }
+
 
 QWidget* MainWindow::createMatchArea()
 {
