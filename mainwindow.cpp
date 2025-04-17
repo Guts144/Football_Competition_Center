@@ -223,12 +223,7 @@ QWidget* MainWindow::createMatchArea()
     matchListLayoutPtr = new QVBoxLayout(scrollWidget); // Initialize the pointer
 
     matchListLayoutPtr->setSpacing(15);
-    matchListLayoutPtr->addWidget(createMatchCard("Equipe 1", "Equipe 2", "10:20", "Stade 1"));
-    matchListLayoutPtr->addWidget(createMatchCard("Equipe 3", "Equipe 4", "11:20", "Stade 2"));
-    matchListLayoutPtr->addWidget(createMatchCard("Equipe 5", "Equipe 6", "12:20", "Stade 3"));
-    matchListLayoutPtr->addWidget(createMatchCard("Equipe 7", "Equipe 8", "13:20", "Stade 4"));
-    matchListLayoutPtr->addWidget(createMatchCard("Equipe 9", "Equipe 10", "14:20", "Stade 5"));
-    matchListLayoutPtr->addStretch();
+    matchListLayoutPtr->addStretch(); // Leave space for future cards
 
     scrollWidget->setLayout(matchListLayoutPtr);
     scrollArea->setWidget(scrollWidget);
@@ -236,6 +231,7 @@ QWidget* MainWindow::createMatchArea()
     layout->addWidget(scrollArea);
     return mainArea;
 }
+
 
 QWidget* MainWindow::createPlaceholderPage(const QString &text)
 {
