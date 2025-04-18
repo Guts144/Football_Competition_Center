@@ -5,7 +5,6 @@
 #include <QApplication>
 #include "mainwindow.h"
 
-/*just to tes*/
 int main(int argc, char *argv[])
 {
     QApplication app(argc, argv);
