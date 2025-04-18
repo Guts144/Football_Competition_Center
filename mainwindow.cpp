@@ -5,6 +5,27 @@
 #include "mainwindow.h"
 
 #include <QMessageBox>
+#include <QtSql/QSqlDatabase>
+#include <QtSql/QSqlQuery>
+#include <QtSql/QSqlError>
+#include <QDebug>
+
+bool connectToDatabase()
+{
+    QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+    db.setHostName("localhost");
+    db.setDatabaseName("Smart_Football_Competition_Center");
+    db.setUserName("mohamed"); // Replace with your username
+    db.setPassword("azerfy");     // Replace with your password
+
+    if (!db.open()) {
+        qDebug() << "Database connection failed: " << db.lastError().text();
+        return false;
+    }
+
+    qDebug() << "Connected to database!";
+    return true;
+}
 
 // --- Add Match Dialog ---
 class AddMatchDialog : public QDialog
@@ -61,6 +82,9 @@ private:
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent), matchListLayoutPtr(nullptr)
 {
+    if (!connectToDatabase()) {
+        QMessageBox::critical(this, "Database Error", "Could not connect to MySQL database.");
+    }
     QWidget *centralWidget = new QWidget(this);
     QHBoxLayout *mainLayout = new QHBoxLayout(centralWidget);
 
@@ -79,6 +103,18 @@ MainWindow::MainWindow(QWidget *parent)
     centralWidget->setLayout(mainLayout);
     setCentralWidget(centralWidget);
     setWindowTitle("Smart Football Competition Center");
+    // QSqlDatabase db = QSqlDatabase::addDatabase("QMYSQL");
+    // db.setHostName("localhost");     // or your host
+    // db.setDatabaseName("football_db"); // your DB name
+    // db.setUserName("mohamed");   // replace with your MySQL username
+    // db.setPassword("azerfy");   // replace with your MySQL password
+
+    // if (!db.open()) {
+    //     qDebug() << "Database error:" << db.lastError().text();
+    // } else {
+    //     qDebug() << "Connected to MySQL database!";
+    // }
+
     resize(1200, 700);
 }
 
@@ -179,11 +215,27 @@ QWidget* MainWindow::createMatchCard(const QString &team1, const QString &team2,
     });
 
     connect(deleteBtn, &QPushButton::clicked, [=]() {
-        if (matchListLayoutPtr) {
-            matchListLayoutPtr->removeWidget(card);
-            card->deleteLater();  // Schedule deletion
+        if (QMessageBox::question(this, "Confirmation", "Supprimer ce match ?") == QMessageBox::Yes) {
+            // Delete from database
+            QSqlQuery query;
+            query.prepare("DELETE FROM matches WHERE team1 = ? AND team2 = ? AND time = ? AND terrain = ?");
+            query.addBindValue(team1);
+            query.addBindValue(team2);
+            query.addBindValue(time);
+            query.addBindValue(stadium);
+
+            if (!query.exec()) {
+                QMessageBox::warning(this, "Erreur BD", "Impossible de supprimer ce match de la base de données.");
+            }
+
+            // Remove from layout
+            if (matchListLayoutPtr) {
+                matchListLayoutPtr->removeWidget(card);
+                card->deleteLater();
+            }
         }
     });
+
 
     QVBoxLayout *buttonLayout = new QVBoxLayout;
     buttonLayout->addWidget(detailsBtn);
@@ -234,6 +286,18 @@ QWidget* MainWindow::createMatchArea()
     scrollArea->setWidget(scrollWidget);
 
     layout->addWidget(scrollArea);
+
+    // Load matches from the database
+    QSqlQuery query("SELECT team1, team2, time, terrain FROM matches");
+    while (query.next()) {
+        QString team1 = query.value(0).toString();
+        QString team2 = query.value(1).toString();
+        QString time = query.value(2).toString();
+        QString terrain = query.value(3).toString();
+
+        matchListLayoutPtr->insertWidget(matchListLayoutPtr->count() - 1, createMatchCard(team1, team2, time, terrain));
+    }
+
     return mainArea;
 }
 
@@ -304,9 +368,25 @@ void MainWindow::openAddMatchDialog()
 
 void MainWindow::addNewMatch(const QString &team1, const QString &team2, const QString &time, const QString &terrain)
 {
-    if (!team1.isEmpty() && !team2.isEmpty() && !time.isEmpty() && !terrain.isEmpty() && matchListLayoutPtr) {
-        matchListLayoutPtr->insertWidget(matchListLayoutPtr->count() - 1, createMatchCard(team1, team2, time, terrain));
-    } else {
+    if (team1.isEmpty() || team2.isEmpty() || time.isEmpty() || terrain.isEmpty() || !matchListLayoutPtr) {
         QMessageBox::warning(this, "Erreur", "Veuillez remplir tous les champs pour ajouter un match.");
+        return;
     }
+
+    // Insert into DB
+    QSqlQuery query;
+    query.prepare("INSERT INTO matches (team1, team2, time, terrain) VALUES (?, ?, ?, ?)");
+    query.addBindValue(team1);
+    query.addBindValue(team2);
+    query.addBindValue(time);
+    query.addBindValue(terrain);
+
+    if (!query.exec()) {
+        QMessageBox::critical(this, "Erreur BD", "Impossible d'ajouter le match dans la base de données: " + query.lastError().text());
+        return;
+    }
+
+    // If DB insertion successful, add to UI
+    matchListLayoutPtr->insertWidget(matchListLayoutPtr->count() - 1, createMatchCard(team1, team2, time, terrain));
 }
+

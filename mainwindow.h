@@ -18,6 +18,10 @@
 #include <QString>
 #include <QLineEdit>
 #include <QTimeEdit>
+#include <QSqlDatabase>
+#include <QSqlQuery>
+#include <QSqlError>
+
 
 class MainWindow : public QMainWindow
 {
